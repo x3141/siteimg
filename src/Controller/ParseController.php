@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Exception\ParserException;
 use App\Parser\Parser;
 use App\Entity\Parser as ParserEntity;
 use App\Form\ParserType;
@@ -21,16 +22,26 @@ class ParseController extends AbstractController
     {
 
         $parserEntity = new ParserEntity();
-        $parserEntity->setUrl('https://mayak.travel/');
         $form = $this->createForm(ParserType::class, $parserEntity);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
             $this->parser->setUrl($parserEntity->getUrl());
-            $parsedData = $this->parser->parseSite();
+            try {
+                $parsedData = $this->parser->parseSite();
+            } catch (ParserException $e) {
+                return $this->render('crawl/parse.html.twig', [
+                    'parsedData' => '',
+                    'error' => $e->getMessage(),
+                    'crawl' => $parserEntity,
+                    'form' => $form->createView(),
+                ]);
+            }
+
 
             return $this->render('crawl/parse.html.twig', [
                 'parsedData' => $parsedData,
+                'error' => '',
                 'crawl' => $parserEntity,
                 'form' => $form->createView(),
             ]);
@@ -38,6 +49,7 @@ class ParseController extends AbstractController
 
         return $this->render('crawl/parse.html.twig', [
             'parsedData' => '',
+            'error' => '',
             'crawl' => $parserEntity,
             'form' => $form->createView(),
         ]);

@@ -2,25 +2,54 @@
 
 namespace App\Parser;
 
+use App\Exception\ParserException;
 use Symfony\Component\DomCrawler\Crawler;
+use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
+/**
+ *
+ */
 class Parser
 {
+    /**
+     * @var
+     */
     private $url;
+    /**
+     * @var string
+     */
     private $basePath = '';
 
+    /**
+     * @param HttpClientInterface $httpClient
+     */
     public function __construct(public HttpClientInterface $httpClient)
     {
     }
 
+    /**
+     * @return array
+     */
     public function parseSite(): array
     {
-        $imageLinks = array_unique($this->getSiteImageLinks($this->url));
+        try {
+            $imageLinks = array_unique($this->getSiteImageLinks($this->url));
+        } catch (ClientExceptionInterface | TransportExceptionInterface | ServerExceptionInterface | RedirectionExceptionInterface
+        | \Exception $e) {
+            throw new ParserException($e->getMessage());
+        }
 
         return $this->makeImageInfoArray($imageLinks);
     }
 
+    /**
+     * @param array $links
+     * @return array
+     */
     private function makeImageInfoArray(array $links)
     {
         $result = [];
@@ -38,6 +67,10 @@ class Parser
         return $result;
     }
 
+    /**
+     * @param $url
+     * @return int
+     */
     private function remoteImageSize($url)
     {
         $headers = get_headers($url);
@@ -53,6 +86,14 @@ class Parser
         return $size;
     }
 
+    /**
+     * @param string $url
+     * @return array
+     * @throws \Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface
+     * @throws \Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface
+     * @throws \Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface
+     * @throws \Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface
+     */
     private function getSiteImageLinks(string $url): array
     {
         $response = $this->httpClient->request('GET', $url);
@@ -72,6 +113,10 @@ class Parser
         return $linkArray;
     }
 
+    /**
+     * @param $src
+     * @return mixed|string
+     */
     function makeFullPath($src)
     {
         if (str_starts_with($src, 'http')) {

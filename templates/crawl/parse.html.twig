@@ -5,6 +5,9 @@
 {% block body %}
     {% if parsedData %}
         {{ include('crawl/parseReport.html.twig') }}
+    {% elseif error %}
+        <h1>Ошибка</h1>
+        <h3>{{ error }}<a href="/">Назад</a></h3>
     {% else %}
         <h1>Поиск изображений на странице сайта</h1>
 
