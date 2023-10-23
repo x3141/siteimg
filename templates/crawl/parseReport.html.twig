@@ -1,0 +1,11 @@
+<table>
+    {% for image in parsedData.image %}
+        {% if (loop.index == 1) or  (((loop.index - 1)  % 4) == 0) %} <tr> {% endif %}
+        <img style="max-width: 20%;" src="{{ image.url }}"/>
+        </td>
+        {% if ((loop.index % 4) == 0) %} </tr> {% endif %}
+    {% endfor %}
+</table>
+<h3>
+    На странице обнаружено: {{ parsedData.image|length }} на {{ parsedData.total.size.Mb }} Мб
+</h3>

@@ -1,0 +1,14 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Поиск изображений на странице сайта{% endblock %}
+
+{% block body %}
+    {% if parsedData %}
+        {{ include('crawl/parseReport.html.twig') }}
+    {% else %}
+        <h1>Поиск изображений на странице сайта</h1>
+
+        {{ include('crawl/_form.html.twig') }}
+    {% endif %}
+
+{% endblock %}
